@@ -1,0 +1,62 @@
+import UIKit
+import Foundation
+
+struct Curve {
+    let name : String
+    let a : Double?
+    let b : Double?
+}
+
+struct Point {
+    let x : Double
+    let y : Double
+}
+
+class ECCManager {
+    
+    var curves = [
+        Curve(name: "secp256k1", a: 0, b: 7)
+    ]
+
+    
+    init() {
+        
+    }
+
+    func multiple(_ P: Point, times n: Int) -> Point {
+        if n == 0 { return Point(x: 0, y: 0) }
+        else if n == 1 { return P }
+        else if n % 2 == 1 { return self.addPoint(P, self.multiple(P, times: n-1)) }
+        else { return self.multiple(self.doublePoint(P), times: n/2) }
+    }
+
+    func addPoint(_ P: Point, _ Q: Point) -> Point {
+        let mu = (Q.y - P.y)/(Q.x - P.x)
+        let xR = pow(mu, 2) - P.x - Q.x
+        let yR = mu * (P.x - xR) - P.y
+        return Point(x: xR, y: yR)
+    }
+
+    func doublePoint(_ P: Point) -> Point {
+        let curve = self.curves[0]
+        let mu = (3*pow(P.x, 2) + curve.a!)/(2*P.y)
+        let xR = pow(mu, 2) - P.x - P.x
+        let yR = mu * (P.x - xR) - P.y
+        return Point(x: xR, y: yR)
+    }
+    
+}
+
+let manager = ECCManager()
+let curve = manager.curves[0]
+
+let x: Double = 1.0
+let y = sqrt(Double(pow(x,3) + curve.a! * x + curve.b!))
+
+let x2: Double = 2.0
+let y2 = sqrt(Double(pow(x2,3) + curve.a! * x2 + curve.b!))
+
+let P = Point(x: x, y: y)
+let B = Point(x: x2, y: y2)
+
+print(manager.addPoint(P, B))
